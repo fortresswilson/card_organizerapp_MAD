@@ -87,7 +87,7 @@ class _FoldersScreenState extends State<FoldersScreen> {
 
           return ListView.separated(
             itemCount: folders.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final folder = folders[index];
 
