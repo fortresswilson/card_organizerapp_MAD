@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/folder.dart';
 import '../models/playing_card.dart';
 import '../repositories/card_repository.dart';
+import 'editcard_screen.dart';
 
 class CardsScreen extends StatefulWidget {
   final Folder folder;
@@ -99,12 +100,55 @@ class _CardsScreenState extends State<CardsScreen> {
                 trailing: IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () => _confirmDeleteCard(card),
+                  trailing: Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    IconButton(
+      icon: const Icon(Icons.edit),
+      onPressed: () async {
+        final changed = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AddEditCardScreen(
+              folder: widget.folder,
+              existing: card,
+            ),
+          ),
+        );
+
+        if (changed == true) {
+          setState(() => _reload());
+        }
+      },
+    ),
+    IconButton(
+      icon: const Icon(Icons.delete),
+      onPressed: () => _confirmDeleteCard(card),
+    ),
+  ],
+),
                 ),
+                
               );
             },
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+  onPressed: () async {
+    final changed = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddEditCardScreen(folder: widget.folder),
+      ),
+    );
+
+    if (changed == true) {
+      setState(() => _reload());
+    }
+  },
+  child: const Icon(Icons.add),
+),
     );
   }
 }
