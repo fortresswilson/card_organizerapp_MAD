@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/folder.dart';
 import '../models/playing_card.dart';
 import '../repositories/card_repository.dart';
@@ -27,6 +28,19 @@ class _CardsScreenState extends State<CardsScreen> {
     _cardsFuture = _repo.getCardsByFolder(widget.folder.id!);
   }
 
+  Widget _cardImage(String assetPath) {
+    return Image.asset(
+      assetPath,
+      width: 46,
+      height: 46,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stack) {
+        // If assets are broken, this prevents crashing
+        return const Icon(Icons.image_not_supported, size: 46);
+      },
+    );
+  }
+
   Future<void> _confirmDeleteCard(PlayingCard card) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -53,25 +67,45 @@ class _CardsScreenState extends State<CardsScreen> {
     }
   }
 
-  Widget _cardImage(String assetPath) {
-    return Image.asset(
-      assetPath,
-      width: 46,
-      height: 46,
-      fit: BoxFit.contain,
-      
-      errorBuilder: (context, error, stack) {
-        return const Icon(Icons.image_not_supported, size: 46);
-      },
+  Future<void> _openAddCard() async {
+    final changed = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddEditCardScreen(folder: widget.folder),
+      ),
     );
+
+    if (changed == true) {
+      setState(() => _reload());
+    }
+  }
+
+  Future<void> _openEditCard(PlayingCard card) async {
+    final changed = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddEditCardScreen(
+          folder: widget.folder,
+          existing: card,
+        ),
+      ),
+    );
+
+    if (changed == true) {
+      setState(() => _reload());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final folderName = widget.folder.folderName;
-
     return Scaffold(
-      appBar: AppBar(title: Text('$folderName Cards')),
+      appBar: AppBar(
+        title: Text('${widget.folder.folderName} Cards'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openAddCard,
+        child: const Icon(Icons.add),
+      ),
       body: FutureBuilder<List<PlayingCard>>(
         future: _cardsFuture,
         builder: (context, snapshot) {
@@ -89,66 +123,32 @@ class _CardsScreenState extends State<CardsScreen> {
 
           return ListView.separated(
             itemCount: cards.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
+            separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final card = cards[index];
 
               return ListTile(
-                leading: _cardImage(card.imageUrl), // hearts.jpg / spades.jpg
+                leading: _cardImage(card.imageUrl),
                 title: Text('${card.cardName} of ${card.suit}'),
-                subtitle:  Text(card.imageUrl),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _confirmDeleteCard(card),
-                  trailing: Row(
-  mainAxisSize: MainAxisSize.min,
-  children: [
-    IconButton(
-      icon: const Icon(Icons.edit),
-      onPressed: () async {
-        final changed = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AddEditCardScreen(
-              folder: widget.folder,
-              existing: card,
-            ),
-          ),
-        );
-
-        if (changed == true) {
-          setState(() => _reload());
-        }
-      },
-    ),
-    IconButton(
-      icon: const Icon(Icons.delete),
-      onPressed: () => _confirmDeleteCard(card),
-    ),
-  ],
-),
+                subtitle: Text(card.imageUrl), // keep for now (helps debug)
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => _openEditCard(card),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => _confirmDeleteCard(card),
+                    ),
+                  ],
                 ),
-                
               );
             },
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-  onPressed: () async {
-    final changed = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AddEditCardScreen(folder: widget.folder),
-      ),
-    );
-
-    if (changed == true) {
-      setState(() => _reload());
-    }
-  },
-  child: const Icon(Icons.add),
-),
     );
   }
 }

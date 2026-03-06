@@ -21,4 +21,18 @@ class CardRepository {
     final db = await _dbHelper.database;
     await db.delete('cards', where: 'id = ?', whereArgs: [cardId]);
   }
+  Future<int> insertCard(PlayingCard card) async {
+  final db = await _dbHelper.database;
+  return db.insert('cards', card.toMap());
+}
+
+Future<int> updateCard(PlayingCard card) async {
+  final db = await _dbHelper.database;
+  return db.update(
+    'cards',
+    card.toMap(),
+    where: 'id = ?',
+    whereArgs: [card.id],
+  );
+}
 }
